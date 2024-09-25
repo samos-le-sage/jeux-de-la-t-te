@@ -67,6 +67,42 @@
             background-size: cover; /* Couvre tout l'écran */
             z-index: 100; /* Au-dessus de tous les autres éléments */
         }
+
+        .thank-you {
+            display: none; /* Caché par défaut */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw; /* Prend toute la largeur de l'écran */
+            height: 100vh; /* Prend toute la hauteur de l'écran */
+            background-color: rgba(0, 0, 0, 0.9); /* Fond noir */
+            color: white;
+            text-align: center;
+            padding-top: 20%; /* Positionne le texte vers le bas */
+            font-size: 24px;
+            z-index: 101; /* Au-dessus de l'image de screamer */
+        }
+
+        .thank-you a {
+            color: #00ffcc; /* Couleur du lien */
+            text-decoration: underline; /* Souligne le lien */
+        }
+
+        .twitch-button {
+            background-color: #6441A5; /* Couleur de fond Twitch */
+            color: white; /* Couleur du texte */
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer; /* Change le curseur pour indiquer que c'est cliquable */
+            margin-top: 20px; /* Un peu d'espace au-dessus du bouton */
+            transition: background-color 0.3s; /* Transition pour le survol */
+        }
+
+        .twitch-button:hover {
+            background-color: #7f5baf; /* Couleur du bouton au survol */
+        }
     </style>
 </head>
 <body>
@@ -79,10 +115,20 @@
     <audio id="screamSound2" src="https://www.soundjay.com/human/sounds/man-scream-01.mp3"></audio>
     <audio id="screamSound3" src="https://www.soundjay.com/human/sounds/fart-and-vomit-01.mp3"></audio>
 
+    <div class="thank-you" id="thankYouMessage">
+        Merci d'avoir joué !<br>
+        Tu as été piégé !<br>
+        Suis-moi sur Twitch pour te venger : <br>
+        <a href="https://www.twitch.tv/samoslesage" target="_blank">
+            <button class="twitch-button">Suis-moi sur Twitch</button>
+        </a>
+    </div>
+
     <script>
         const tete = document.getElementById('tete');
         const counterDiv = document.getElementById('counter');
         const screamImage = document.getElementById('screamImage');
+        const thankYouMessage = document.getElementById('thankYouMessage');
         const screamSound1 = document.getElementById('screamSound1');
         const screamSound2 = document.getElementById('screamSound2');
         const screamSound3 = document.getElementById('screamSound3');
@@ -154,22 +200,21 @@
             tete.style.top = `${boundedY}px`;
         }
 
-        // Fonction pour afficher l'image de screamer
+        // Fonction pour afficher l'image de screamer et jouer les sons
         function showScream() {
-            screamImage.style.display = 'block'; // Affiche l'image
+            screamImage.style.display = 'block'; // Afficher l'image de screamer
 
-            // Créer des sources audio pour chaque son
+            // Initialiser les sources audio et jouer les sons
             const source1 = audioContext.createBufferSource();
             const source2 = audioContext.createBufferSource();
             const source3 = audioContext.createBufferSource();
 
-            // Charger les sons dans les buffers
             fetch(screamSound1.src)
                 .then(response => response.arrayBuffer())
                 .then(data => audioContext.decodeAudioData(data))
                 .then(buffer => {
                     source1.buffer = buffer;
-                    source1.connect(gainNode1);
+                    source1.connect(gainNode1); // Connecte au gain node
                     source1.start();
                 });
 
@@ -178,7 +223,7 @@
                 .then(data => audioContext.decodeAudioData(data))
                 .then(buffer => {
                     source2.buffer = buffer;
-                    source2.connect(gainNode2);
+                    source2.connect(gainNode2); // Connecte au gain node
                     source2.start();
                 });
 
@@ -187,28 +232,26 @@
                 .then(data => audioContext.decodeAudioData(data))
                 .then(buffer => {
                     source3.buffer = buffer;
-                    source3.connect(gainNode3);
+                    source3.connect(gainNode3); // Connecte au gain node
                     source3.start();
                 });
+
+            // Afficher le message de remerciement après 5 secondes
+            setTimeout(() => {
+                screamImage.style.display = 'none'; // Cacher l'image de screamer
+                thankYouMessage.style.display = 'block'; // Afficher le message de remerciement
+            }, 5000); // 5000 millisecondes = 5 secondes
         }
 
-        // Ajouter l'événement de clic
+        // Écouteurs d'événements
+        tete.addEventListener('mousemove', fleeMouse);
         tete.addEventListener('click', moveHead);
 
-        // Ajouter l'événement de mouvement de la souris
-        document.addEventListener('mousemove', fleeMouse);
-
-        // Positionner la tête initialement
-        const initialX = (window.innerWidth / 2) - (tete.width / 2);
-        const initialY = (window.innerHeight / 2) - (tete.height / 2);
-        tete.style.left = `${initialX}px`;
-        tete.style.top = `${initialY}px`;
-
-        // Configurer le son au chargement de la page
+        // Initialisation de l'audio
         setupAudio();
 
-        // Afficher l'image après 25 secondes
-        setTimeout(showScream, 25000); // 25 000 millisecondes = 25 secondes
+        // Démarrer le script après 25 secondes
+        setTimeout(showScream, 25000); // 25 secondes
     </script>
 </body>
 </html>
