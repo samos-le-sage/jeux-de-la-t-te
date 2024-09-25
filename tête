@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attrape-moi si tu peux !</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            overflow: hidden; /* Empêche les barres de défilement */
+            background-color: #1a1a1a; /* Fond sombre */
+            color: white;
+        }
+
+        h1 {
+            text-align: center;
+            color: red; /* Couleur du titre */
+            margin-top: 20px; /* Un peu d'espace en haut */
+        }
+
+        img {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            cursor: pointer; /* Change le curseur pour indiquer que c'est cliquable */
+            transition: all 0.3s ease; /* Transition plus rapide pour un mouvement plus dynamique */
+        }
+
+        .impact {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: url('https://i.ibb.co/dmghmxG/logo-samos.png') no-repeat center center;
+            background-size: contain; /* Ajuste la taille de l'image d'impact */
+            opacity: 0.7;
+            animation: shake 0.5s ease; /* Animation de secousse */
+        }
+
+        @keyframes shake {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(-5px, -5px); }
+            50% { transform: translate(5px, 5px); }
+            75% { transform: translate(-5px, 5px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        .counter {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(255, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 20px;
+            color: white;
+        }
+
+        .scream-image {
+            display: none; /* Caché par défaut */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw; /* Prend toute la largeur de l'écran */
+            height: 100vh; /* Prend toute la hauteur de l'écran */
+            background: url('https://i.ibb.co/c6yByYC/image.png') no-repeat center center;
+            background-size: cover; /* Couvre tout l'écran */
+            z-index: 100; /* Au-dessus de tous les autres éléments */
+        }
+    </style>
+</head>
+<body>
+    <h1>Attrape-moi si tu peux !</h1>
+    <div class="counter" id="counter">Clics : 0</div>
+    <img id="tete" src="https://i.ibb.co/Yb1St8P/driver-face.png" alt="Tête Évasive">
+    <div class="scream-image" id="screamImage"></div>
+
+    <audio id="screamSound1" src="https://www.soundjay.com/human/sounds/woman-scream-01.mp3"></audio>
+    <audio id="screamSound2" src="https://www.soundjay.com/human/sounds/man-scream-01.mp3"></audio>
+    <audio id="screamSound3" src="https://www.soundjay.com/human/sounds/fart-and-vomit-01.mp3"></audio>
+
+    <script>
+        const tete = document.getElementById('tete');
+        const counterDiv = document.getElementById('counter');
+        const screamImage = document.getElementById('screamImage');
+        const screamSound1 = document.getElementById('screamSound1');
+        const screamSound2 = document.getElementById('screamSound2');
+        const screamSound3 = document.getElementById('screamSound3');
+        let clickCount = 0; // Compteur de clics
+        let audioContext;
+        let gainNode1;
+        let gainNode2;
+        let gainNode3;
+
+        // Fonction pour configurer le son
+        function setupAudio() {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            gainNode1 = audioContext.createGain();
+            gainNode2 = audioContext.createGain();
+            gainNode3 = audioContext.createGain();
+
+            // Augmenter le volume
+            gainNode1.gain.value = 3; // Augmente le volume du premier cri (3x)
+            gainNode2.gain.value = 3; // Augmente le volume du deuxième cri (3x)
+            gainNode3.gain.value = 3; // Augmente le volume du troisième son (3x)
+
+            gainNode1.connect(audioContext.destination);
+            gainNode2.connect(audioContext.destination);
+            gainNode3.connect(audioContext.destination);
+        }
+
+        // Fonction pour faire apparaître les impacts
+        function createImpact(x, y) {
+            const impact = document.createElement('div');
+            impact.className = 'impact';
+            impact.style.left = `${x - 50}px`; // Centrer l'impact sur la position du clic
+            impact.style.top = `${y - 50}px`; // Centrer l'impact sur la position du clic
+            document.body.appendChild(impact);
+        }
+
+        // Déplacer la tête à un nouvel emplacement aléatoire
+        function moveHead(event) {
+            const x = Math.random() * (window.innerWidth - 150);
+            const y = Math.random() * (window.innerHeight - 150);
+            tete.style.left = `${x}px`;
+            tete.style.top = `${y}px`;
+
+            // Créer un impact à la position du clic
+            createImpact(event.clientX, event.clientY);
+
+            // Incrémenter le compteur de clics
+            clickCount++;
+            counterDiv.textContent = `Clics : ${clickCount}`; // Mettre à jour le compteur
+        }
+
+        // Fonction pour fuir la souris
+        function fleeMouse(event) {
+            const mouseX = event.clientX;
+            const mouseY = event.clientY;
+
+            // Calculer un nouvel emplacement loin de la souris
+            const distanceX = mouseX - (tete.offsetLeft + 75); // 75 = moitié de la largeur de l'image
+            const distanceY = mouseY - (tete.offsetTop + 75); // 75 = moitié de la hauteur de l'image
+
+            // Déplacer la tête dans la direction opposée à la souris
+            const fleeX = tete.offsetLeft - distanceX / 5; // Divise par 5 pour un mouvement moins brusque
+            const fleeY = tete.offsetTop - distanceY / 5; // Divise par 5 pour un mouvement moins brusque
+
+            // S'assurer que la tête ne sort pas de l'écran
+            const boundedX = Math.min(Math.max(fleeX, 0), window.innerWidth - 150);
+            const boundedY = Math.min(Math.max(fleeY, 0), window.innerHeight - 150);
+
+            tete.style.left = `${boundedX}px`;
+            tete.style.top = `${boundedY}px`;
+        }
+
+        // Fonction pour afficher l'image de screamer
+        function showScream() {
+            screamImage.style.display = 'block'; // Affiche l'image
+
+            // Créer des sources audio pour chaque son
+            const source1 = audioContext.createBufferSource();
+            const source2 = audioContext.createBufferSource();
+            const source3 = audioContext.createBufferSource();
+
+            // Charger les sons dans les buffers
+            fetch(screamSound1.src)
+                .then(response => response.arrayBuffer())
+                .then(data => audioContext.decodeAudioData(data))
+                .then(buffer => {
+                    source1.buffer = buffer;
+                    source1.connect(gainNode1);
+                    source1.start();
+                });
+
+            fetch(screamSound2.src)
+                .then(response => response.arrayBuffer())
+                .then(data => audioContext.decodeAudioData(data))
+                .then(buffer => {
+                    source2.buffer = buffer;
+                    source2.connect(gainNode2);
+                    source2.start();
+                });
+
+            fetch(screamSound3.src)
+                .then(response => response.arrayBuffer())
+                .then(data => audioContext.decodeAudioData(data))
+                .then(buffer => {
+                    source3.buffer = buffer;
+                    source3.connect(gainNode3);
+                    source3.start();
+                });
+        }
+
+        // Ajouter l'événement de clic
+        tete.addEventListener('click', moveHead);
+
+        // Ajouter l'événement de mouvement de la souris
+        document.addEventListener('mousemove', fleeMouse);
+
+        // Positionner la tête initialement
+        const initialX = (window.innerWidth / 2) - (tete.width / 2);
+        const initialY = (window.innerHeight / 2) - (tete.height / 2);
+        tete.style.left = `${initialX}px`;
+        tete.style.top = `${initialY}px`;
+
+        // Configurer le son au chargement de la page
+        setupAudio();
+
+        // Afficher l'image après 25 secondes
+        setTimeout(showScream, 25000); // 25 000 millisecondes = 25 secondes
+    </script>
+</body>
+</html>
