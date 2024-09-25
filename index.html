@@ -65,6 +65,7 @@
             height: 100vh; /* Prend toute la hauteur de l'écran */
             background: url('https://i.ibb.co/c6yByYC/image.png') no-repeat center center;
             background-size: cover; /* Couvre tout l'écran */
+            background-position: center 20%; /* Décale le fond vers le bas pour voir le visage */
             z-index: 100; /* Au-dessus de tous les autres éléments */
         }
 
@@ -111,6 +112,7 @@
     <img id="tete" src="https://i.ibb.co/Yb1St8P/driver-face.png" alt="Tête Évasive">
     <div class="scream-image" id="screamImage"></div>
 
+    <!-- Les sons -->
     <audio id="screamSound1" src="https://www.soundjay.com/human/sounds/woman-scream-01.mp3"></audio>
     <audio id="screamSound2" src="https://www.soundjay.com/human/sounds/man-scream-01.mp3"></audio>
     <audio id="screamSound3" src="https://www.soundjay.com/human/sounds/fart-and-vomit-01.mp3"></audio>
@@ -133,27 +135,6 @@
         const screamSound2 = document.getElementById('screamSound2');
         const screamSound3 = document.getElementById('screamSound3');
         let clickCount = 0; // Compteur de clics
-        let audioContext;
-        let gainNode1;
-        let gainNode2;
-        let gainNode3;
-
-        // Fonction pour configurer le son
-        function setupAudio() {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            gainNode1 = audioContext.createGain();
-            gainNode2 = audioContext.createGain();
-            gainNode3 = audioContext.createGain();
-
-            // Augmenter le volume
-            gainNode1.gain.value = 3; // Augmente le volume du premier cri (3x)
-            gainNode2.gain.value = 3; // Augmente le volume du deuxième cri (3x)
-            gainNode3.gain.value = 3; // Augmente le volume du troisième son (3x)
-
-            gainNode1.connect(audioContext.destination);
-            gainNode2.connect(audioContext.destination);
-            gainNode3.connect(audioContext.destination);
-        }
 
         // Fonction pour faire apparaître les impacts
         function createImpact(x, y) {
@@ -190,9 +171,9 @@
 
             // Déplacer la tête dans la direction opposée à la souris
             const fleeX = tete.offsetLeft - distanceX / 5; // Divise par 5 pour un mouvement moins brusque
-            const fleeY = tete.offsetTop - distanceY / 5; // Divise par 5 pour un mouvement moins brusque
+            const fleeY = tete.offsetTop - distanceY / 5;
 
-            // S'assurer que la tête ne sort pas de l'écran
+            // S'assurer que la tête ne quitte pas l'écran
             const boundedX = Math.min(Math.max(fleeX, 0), window.innerWidth - 150);
             const boundedY = Math.min(Math.max(fleeY, 0), window.innerHeight - 150);
 
@@ -204,37 +185,10 @@
         function showScream() {
             screamImage.style.display = 'block'; // Afficher l'image de screamer
 
-            // Initialiser les sources audio et jouer les sons
-            const source1 = audioContext.createBufferSource();
-            const source2 = audioContext.createBufferSource();
-            const source3 = audioContext.createBufferSource();
-
-            fetch(screamSound1.src)
-                .then(response => response.arrayBuffer())
-                .then(data => audioContext.decodeAudioData(data))
-                .then(buffer => {
-                    source1.buffer = buffer;
-                    source1.connect(gainNode1); // Connecte au gain node
-                    source1.start();
-                });
-
-            fetch(screamSound2.src)
-                .then(response => response.arrayBuffer())
-                .then(data => audioContext.decodeAudioData(data))
-                .then(buffer => {
-                    source2.buffer = buffer;
-                    source2.connect(gainNode2); // Connecte au gain node
-                    source2.start();
-                });
-
-            fetch(screamSound3.src)
-                .then(response => response.arrayBuffer())
-                .then(data => audioContext.decodeAudioData(data))
-                .then(buffer => {
-                    source3.buffer = buffer;
-                    source3.connect(gainNode3); // Connecte au gain node
-                    source3.start();
-                });
+            // Jouer les trois sons simultanément
+            screamSound1.play();
+            screamSound2.play();
+            screamSound3.play();
 
             // Afficher le message de remerciement après 5 secondes
             setTimeout(() => {
@@ -246,9 +200,6 @@
         // Écouteurs d'événements
         tete.addEventListener('mousemove', fleeMouse);
         tete.addEventListener('click', moveHead);
-
-        // Initialisation de l'audio
-        setupAudio();
 
         // Démarrer le script après 25 secondes
         setTimeout(showScream, 25000); // 25 secondes
